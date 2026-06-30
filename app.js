@@ -9,6 +9,12 @@ const CLICK_TOKEN  = '_8EXouDjl8SYdjV9AHOP13p7tw8zQ8u2';
 const MILESTONES    = [10, 50, 100, 500, 1_000, 2_000, 3_000, 4_000, 5_000, 6_000, 7_000, 8_000, 9_000, 10_000, 100_000, 1_000_000];
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
+// 국가 파이차트 색상
+const COUNTRY_COLORS = [
+    '#7c6ef5', '#f43f5e', '#22d3ee', '#4ade80', '#fbbf24',
+    '#f97316', '#e879f9', '#60a5fa', '#2dd4bf', '#f472b6',
+];
+
 // 마일스톤별 티어 색상
 const MILESTONE_COLORS = {
     10:        'var(--primary)',
@@ -231,6 +237,32 @@ function getCountryName(code) {
     return COUNTRY_NAMES[code]?.[currentLang] || code;
 }
 
+function updateButtonChart() {
+    if (!countryData || Object.keys(countryData).length === 0) {
+        clickBtn.style.background = '';
+        return;
+    }
+    const entries = Object.entries(countryData)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    const total = entries.reduce((s, [, v]) => s + v, 0);
+    if (total === 0) { clickBtn.style.background = ''; return; }
+
+    let pct = 0;
+    const stops = entries.map(([, count], i) => {
+        const color = COUNTRY_COLORS[i % COUNTRY_COLORS.length];
+        const from  = pct;
+        pct += (count / total) * 100;
+        return `${color} ${from.toFixed(2)}% ${pct.toFixed(2)}%`;
+    });
+
+    // 파이차트 + 중앙 구형 그라데이션 오버레이
+    clickBtn.style.background = [
+        'radial-gradient(circle at 38% 35%, rgba(255,255,255,0.18) 0%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0.45) 100%)',
+        `conic-gradient(${stops.join(', ')})`,
+    ].join(', ');
+}
+
 function renderCountryList() {
     if (!countryListEl) return;
     if (!countryData || Object.keys(countryData).length === 0) {
@@ -254,11 +286,13 @@ function renderCountryList() {
                 <span class="c-count">${count.toLocaleString('ko-KR')}</span>
             </div>`;
     }).join('');
+    updateButtonChart();
 }
 
 function setupCountryListener(date) {
     if (countryUnsubscriber) countryUnsubscriber();
     countryData = null;
+    clickBtn.style.background = '';
     countryUnsubscriber = onValue(ref(db, `countries/${date}`), snap => {
         countryData = snap.val();
         renderCountryList();
