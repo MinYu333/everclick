@@ -139,6 +139,7 @@ const sessionRef = ref(db, 'session');
 let currentMilestone       = null;
 let isProcessing           = false;
 let pendingClicks          = 0;
+let pressingTimeout        = null;
 let nextResetAt            = null;
 let countdownInterval      = null;
 let currentDate            = null;
@@ -313,8 +314,11 @@ function tickCountdown() {
 
 // ── 버튼 클릭 → Worker 호출 ──
 clickBtn.addEventListener('click', e => {
+    clearTimeout(pressingTimeout);
+    clickBtn.classList.remove('pressing');
+    void clickBtn.offsetWidth; // 애니메이션 강제 재시작
     clickBtn.classList.add('pressing');
-    setTimeout(() => clickBtn.classList.remove('pressing'), 160);
+    pressingTimeout = setTimeout(() => clickBtn.classList.remove('pressing'), 160);
     spawnRipple(e);
 
     // 클릭 즉시 숫자 +1
