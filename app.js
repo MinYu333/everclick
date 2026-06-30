@@ -281,7 +281,8 @@ onValue(sessionRef, snapshot => {
     const date    = session?.date    ?? getKSTDateString();
 
     const formatted = count.toLocaleString('ko-KR');
-    if (totalCountEl.textContent !== formatted) {
+    // 처리 중인 클릭이 있으면 Firebase 값으로 덮어쓰지 않음
+    if (!isProcessing && pendingClicks === 0 && totalCountEl.textContent !== formatted) {
         totalCountEl.textContent = formatted;
         totalCountEl.classList.remove('bump');
         void totalCountEl.offsetWidth;
