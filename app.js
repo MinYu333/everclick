@@ -142,6 +142,7 @@ let currentMilestone       = null;
 let isProcessing           = false;
 let pendingClicks          = 0;
 let pressingTimeout        = null;
+let latestServerCount      = 0;
 let nextResetAt            = null;
 let countdownInterval      = null;
 let currentDate            = null;
@@ -283,6 +284,7 @@ onValue(sessionRef, snapshot => {
     const resetAt = session?.resetAt ?? null;
     const date    = session?.date    ?? getKSTDateString();
 
+    latestServerCount = count;
     const formatted = count.toLocaleString('ko-KR');
     // 처리 중인 클릭이 있으면 Firebase 값으로 덮어쓰지 않음
     if (!isProcessing && pendingClicks === 0 && totalCountEl.textContent !== formatted) {
@@ -361,6 +363,12 @@ async function flushClick(count = 1) {
             const batch = pendingClicks;
             pendingClicks = 0;
             flushClick(batch);
+        } else {
+            // 모든 처리 완료 후 Firebase 실제값으로 동기화
+            const formatted = latestServerCount.toLocaleString('ko-KR');
+            if (totalCountEl.textContent !== formatted) {
+                totalCountEl.textContent = formatted;
+            }
         }
     }
 }
