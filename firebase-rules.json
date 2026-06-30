@@ -2,13 +2,38 @@
   "rules": {
     "session": {
       ".read": true,
-      ".write": true
+      ".write": true,
+      "count": {
+        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000"
+      },
+      "resetAt": {
+        ".validate": "newData.isNumber() && newData.val() > 0"
+      },
+      "date": {
+        ".validate": "newData.isString() && newData.val().length === 10"
+      },
+      "hiddenMilestone": {
+        ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000"
+      },
+      "$other": {
+        ".validate": false
+      }
     },
     "milestones": {
       "$date": {
         "$milestone": {
           ".read": true,
-          ".write": "!data.exists() || data.child('name').val() === '익명'"
+          ".write": "!data.exists() || data.child('name').val() === '익명'",
+          ".validate": "newData.hasChildren(['name', 'date'])",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 15"
+          },
+          "date": {
+            ".validate": "newData.isString()"
+          },
+          "$other": {
+            ".validate": false
+          }
         }
       }
     }
