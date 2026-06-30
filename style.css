@@ -154,6 +154,7 @@ main {
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    touch-action: manipulation;
 }
 
 .click-btn:hover {
