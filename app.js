@@ -333,10 +333,14 @@ clickBtn.addEventListener('click', e => {
     flushClick();
 });
 
-async function flushClick() {
+async function flushClick(count = 1) {
     isProcessing = true;
     try {
-        const res = await fetch(`${WORKER_URL}/click`, { method: 'POST' });
+        const res = await fetch(`${WORKER_URL}/click`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ count }),
+        });
         if (!res.ok) throw new Error(`Worker ${res.status}`);
 
         const data = await res.json();
@@ -351,8 +355,9 @@ async function flushClick() {
     } finally {
         isProcessing = false;
         if (pendingClicks > 0) {
-            pendingClicks--;
-            flushClick();
+            const batch = pendingClicks;
+            pendingClicks = 0;
+            flushClick(batch);
         }
     }
 }

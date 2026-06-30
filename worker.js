@@ -10,7 +10,6 @@ function getKSTDateString() {
     return new Date(Date.now() + KST_OFFSET_MS).toISOString().slice(0, 10);
 }
 
-// 날짜 + 서버 시크릿 솔트로 히든 숫자 결정 (클라이언트에 노출 안 됨)
 function getDailyHidden(date, salt) {
     const [y, m, d] = date.split('-').map(Number);
     let h = (y * 366 + m) * 31 + d;
@@ -20,6 +19,15 @@ function getDailyHidden(date, salt) {
     let n = (h % 1000) + 1;
     while (MILESTONES.includes(n)) n = (n % 1000) + 1;
     return n;
+}
+
+// oldCount+1 ~ newCount 범위에서 첫 번째 마일스톤 탐색
+function findMilestone(oldCount, newCount, hidden) {
+    for (let i = oldCount + 1; i <= newCount; i++) {
+        if (MILESTONES.includes(i)) return { milestone: i, isHidden: false };
+        if (i === hidden)           return { milestone: 'hidden', isHidden: true };
+    }
+    return { milestone: null, isHidden: false };
 }
 
 const ALLOWED_ORIGINS = [
@@ -50,13 +58,19 @@ export default {
             return new Response('Not Found', { status: 404, headers: corsHeaders });
         }
 
+        // 배치 클릭 수 (최대 100)
+        let clickCount = 1;
+        try {
+            const body = await request.json();
+            clickCount = Math.max(1, Math.min(parseInt(body.count) || 1, 100));
+        } catch {}
+
         const { FIREBASE_DB_URL, FIREBASE_SECRET, HIDDEN_SALT } = env;
         const salt = parseInt(HIDDEN_SALT) || 0x1a2b3c4d;
         const sessionUrl = `${FIREBASE_DB_URL}/session.json?auth=${FIREBASE_SECRET}`;
 
         let retries = 10;
         while (retries-- > 0) {
-            // ETag 기반 낙관적 잠금으로 원자적 증가
             const getRes = await fetch(sessionUrl, {
                 headers: { 'X-Firebase-ETag': 'true' }
             });
@@ -65,18 +79,18 @@ export default {
 
             const now  = Date.now();
             const date = getKSTDateString();
+            const hidden = getDailyHidden(date, salt);
 
             let newSession;
+            let oldCount;
             if (!session?.resetAt || now >= session.resetAt) {
-                newSession = { count: 1, resetAt: getNextKSTMidnight(), date };
+                oldCount   = 0;
+                newSession = { count: clickCount, resetAt: getNextKSTMidnight(), date };
             } else {
-                newSession = { ...session, count: (session.count || 0) + 1, date };
+                oldCount   = session.count || 0;
+                newSession = { ...session, count: oldCount + clickCount, date };
             }
 
-            const newCount = newSession.count;
-            const hidden   = getDailyHidden(date, salt);
-
-            // 조건부 쓰기 — 충돌 시 412 반환 → 재시도
             const putRes = await fetch(sessionUrl, {
                 method:  'PUT',
                 headers: { 'Content-Type': 'application/json', 'if-match': etag },
@@ -88,18 +102,8 @@ export default {
                 return new Response('Firebase error', { status: 500, headers: corsHeaders });
             }
 
-            // 마일스톤 판별
-            let milestone = null;
-            let isHidden  = false;
+            const { milestone, isHidden } = findMilestone(oldCount, newSession.count, hidden);
 
-            if (MILESTONES.includes(newCount)) {
-                milestone = newCount;
-            } else if (newCount === hidden) {
-                milestone = 'hidden';
-                isHidden  = true;
-            }
-
-            // 마일스톤 달성 시 '익명' 선점 (클라이언트가 덮어쓰기 가능)
             if (milestone !== null) {
                 const key  = isHidden ? 'hidden' : milestone;
                 const mUrl = `${FIREBASE_DB_URL}/milestones/${date}/${key}.json?auth=${FIREBASE_SECRET}`;
@@ -117,12 +121,12 @@ export default {
             }
 
             return new Response(JSON.stringify({
-                count:          newCount,
+                count:           newSession.count,
                 milestone,
                 isHidden,
                 hiddenActualNum: isHidden ? hidden : null,
                 date,
-                resetAt:        newSession.resetAt,
+                resetAt:         newSession.resetAt,
             }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
