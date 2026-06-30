@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://everclick.pages.dev/sitemap.xml
