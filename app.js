@@ -167,6 +167,7 @@ const hiddenTop       = document.getElementById('hidden-top');
 const langBtnEl       = document.getElementById('lang-btn');
 const countryListEl   = document.getElementById('country-list');
 const btnLegendEl     = document.getElementById('btn-legend');
+const chartOverlayEl  = document.getElementById('chart-overlay');
 
 const sessionRef = ref(db, 'session');
 
@@ -250,6 +251,8 @@ function getCountryName(code) {
 function updateButtonChart() {
     if (!countryData || Object.keys(countryData).length === 0) {
         clickBtn.style.background = '';
+        if (chartOverlayEl) chartOverlayEl.innerHTML = '';
+        if (btnLegendEl)    btnLegendEl.innerHTML    = '';
         return;
     }
     const entries = Object.entries(countryData)
@@ -258,6 +261,7 @@ function updateButtonChart() {
     const total = entries.reduce((s, [, v]) => s + v, 0);
     if (total === 0) { clickBtn.style.background = ''; return; }
 
+    // 파이차트 배경
     let pct = 0;
     const stops = entries.map(([, count], i) => {
         const color = COUNTRY_COLORS[i % COUNTRY_COLORS.length];
@@ -265,14 +269,34 @@ function updateButtonChart() {
         pct += (count / total) * 100;
         return `${color} ${from.toFixed(2)}% ${pct.toFixed(2)}%`;
     });
-
-    // 파이차트 + 중앙 구형 그라데이션 오버레이
     clickBtn.style.background = [
         'radial-gradient(circle at 38% 35%, rgba(255,255,255,0.18) 0%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0.45) 100%)',
         `conic-gradient(${stops.join(', ')})`,
     ].join(', ');
 
-    // 범례 업데이트
+    // SVG % 레이블
+    if (chartOverlayEl) {
+        const cx = 110, cy = 110, r = 72;
+        let startPct = 0;
+        const labels = entries.map(([, count]) => {
+            const segPct = (count / total) * 100;
+            const midPct = startPct + segPct / 2;
+            startPct += segPct;
+            if (segPct < 5) return '';
+            const angle = (midPct / 100) * 2 * Math.PI - Math.PI / 2;
+            const x = (cx + r * Math.cos(angle)).toFixed(1);
+            const y = (cy + r * Math.sin(angle)).toFixed(1);
+            const label = `${Math.round(segPct)}%`;
+            return `
+                <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle"
+                    font-size="13" font-weight="800" fill="rgba(0,0,0,0.55)" stroke="rgba(0,0,0,0.55)" stroke-width="4" stroke-linejoin="round">${label}</text>
+                <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle"
+                    font-size="13" font-weight="800" fill="white">${label}</text>`;
+        }).join('');
+        chartOverlayEl.innerHTML = `<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">${labels}</svg>`;
+    }
+
+    // 범례
     if (btnLegendEl) {
         btnLegendEl.innerHTML = entries.map(([code], i) => {
             const color = COUNTRY_COLORS[i % COUNTRY_COLORS.length];
@@ -314,7 +338,8 @@ function setupCountryListener(date) {
     if (countryUnsubscriber) countryUnsubscriber();
     countryData = null;
     clickBtn.style.background = '';
-    if (btnLegendEl) btnLegendEl.innerHTML = '';
+    if (chartOverlayEl) chartOverlayEl.innerHTML = '';
+    if (btnLegendEl)    btnLegendEl.innerHTML    = '';
     countryUnsubscriber = onValue(ref(db, `countries/${date}`), snap => {
         countryData = snap.val();
         renderCountryList();
