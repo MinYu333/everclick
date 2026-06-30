@@ -319,6 +319,10 @@ clickBtn.addEventListener('click', async e => {
     setTimeout(() => clickBtn.classList.remove('pressing'), 160);
     spawnRipple(e);
 
+    // 클릭 즉시 숫자 +1 (체감 속도 개선)
+    const current = parseInt(totalCountEl.textContent.replace(/,/g, '')) || 0;
+    totalCountEl.textContent = (current + 1).toLocaleString('ko-KR');
+
     try {
         const res = await fetch(`${WORKER_URL}/click`, { method: 'POST' });
         if (!res.ok) throw new Error(`Worker ${res.status}`);
@@ -332,6 +336,8 @@ clickBtn.addEventListener('click', async e => {
         }
     } catch (err) {
         console.error('클릭 처리 실패:', err);
+        // 실패 시 원래 숫자로 복원
+        totalCountEl.textContent = current.toLocaleString('ko-KR');
     } finally {
         isProcessing = false;
     }
