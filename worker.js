@@ -1,4 +1,4 @@
-const MILESTONES    = [10, 50, 100, 500, 1000, 10000, 100000, 1000000];
+const MILESTONES    = [10, 50, 100, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 100000, 1000000];
 const KST_OFFSET_MS = 9 * 3600 * 1000;
 
 function getNextKSTMidnight() {
@@ -16,8 +16,8 @@ function getDailyHidden(date, salt) {
     h = Math.imul(h ^ salt, 0x45d9f3b);
     h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
     h = (h ^ (h >>> 16)) >>> 0;
-    let n = (h % 1000) + 1;
-    while (MILESTONES.includes(n)) n = (n % 1000) + 1;
+    let n = (h % 10000) + 1;
+    while (MILESTONES.includes(n)) n = (n % 10000) + 1;
     return n;
 }
 
@@ -139,6 +139,19 @@ export default {
                     });
                 }
             }
+
+            // 국가별 클릭 집계 (통계용, best-effort)
+            try {
+                const country = ((request.cf?.country) || 'XX').toUpperCase().slice(0, 2);
+                const cUrl = `${FIREBASE_DB_URL}/countries/${date}/${country}.json?auth=${FIREBASE_SECRET}`;
+                const cRes  = await fetch(cUrl);
+                const cCount = (await cRes.json()) || 0;
+                await fetch(cUrl, {
+                    method:  'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify(cCount + clickCount),
+                });
+            } catch {}
 
             return new Response(JSON.stringify({
                 count:           newSession.count,

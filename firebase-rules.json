@@ -17,12 +17,18 @@
             ".validate": "newData.isString()"
           },
           "hiddenNum": {
-            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000"
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10000"
           },
           "$other": {
             ".validate": false
           }
         }
+      }
+    },
+    "countries": {
+      "$date": {
+        ".read": true,
+        ".write": false
       }
     }
   }

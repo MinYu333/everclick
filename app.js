@@ -6,7 +6,7 @@ import {
 const WORKER_URL   = 'https://everclick-worker.ck08273.workers.dev';
 const CLICK_TOKEN  = '_8EXouDjl8SYdjV9AHOP13p7tw8zQ8u2';
 
-const MILESTONES    = [10, 50, 100, 500, 1_000, 10_000, 100_000, 1_000_000];
+const MILESTONES    = [10, 50, 100, 500, 1_000, 2_000, 3_000, 4_000, 5_000, 6_000, 7_000, 8_000, 9_000, 10_000, 100_000, 1_000_000];
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
 // 마일스톤별 티어 색상
@@ -16,6 +16,14 @@ const MILESTONE_COLORS = {
     100:       '#34d399',
     500:       '#fbbf24',
     1000:      '#f97316',
+    2000:      '#fb923c',
+    3000:      '#4ade80',
+    4000:      '#22d3ee',
+    5000:      '#f472b6',
+    6000:      '#818cf8',
+    7000:      '#2dd4bf',
+    8000:      '#eab308',
+    9000:      '#ef4444',
     10000:     '#f43f5e',
     100000:    '#e879f9',
     1000000:   '#c084fc',
@@ -71,6 +79,9 @@ const LANG = {
         hiddenLabel:         '???번째',
         hiddenPending:       '히든 마일스톤을 노려보세요!',
         hiddenAchieved:      n => `${n.toLocaleString('ko-KR')}번째 히든 마일스톤`,
+        countryTitle:        '국가별 클릭 순위',
+        countryDesc:         '오늘 함께 클릭한 나라들',
+        countryEmpty:        '아직 데이터가 없어요',
     },
     en: {
         counterLabel:        "Today's Total Clicks",
@@ -116,6 +127,9 @@ const LANG = {
         hiddenLabel:         '??? th',
         hiddenPending:       'Can you find the hidden milestone?',
         hiddenAchieved:      n => `No. ${n.toLocaleString('en-US')} Hidden Milestone`,
+        countryTitle:        'Clicks by Country',
+        countryDesc:         'Countries clicking together today',
+        countryEmpty:        'No data yet',
     }
 };
 
@@ -136,6 +150,7 @@ const btnPass         = document.getElementById('btn-pass');
 const milestonesGrid  = document.getElementById('milestones-grid');
 const hiddenTop       = document.getElementById('hidden-top');
 const langBtnEl       = document.getElementById('lang-btn');
+const countryListEl   = document.getElementById('country-list');
 
 const sessionRef = ref(db, 'session');
 
@@ -149,6 +164,8 @@ let countdownInterval      = null;
 let currentDate            = null;
 let milestoneUnsubscribers = [];
 const milestoneData        = {};
+let countryUnsubscriber    = null;
+let countryData            = null;
 
 // ── KST 헬퍼 ──
 function getKSTDateString() {
@@ -160,6 +177,94 @@ function getNextKSTMidnight() {
     return Math.floor(kstNow / 86_400_000) * 86_400_000 + 86_400_000 - KST_OFFSET_MS;
 }
 
+// ── 국가 헬퍼 ──
+const COUNTRY_NAMES = {
+    KR: { ko: '대한민국', en: 'South Korea' },
+    US: { ko: '미국',     en: 'United States' },
+    JP: { ko: '일본',     en: 'Japan' },
+    CN: { ko: '중국',     en: 'China' },
+    TW: { ko: '대만',     en: 'Taiwan' },
+    HK: { ko: '홍콩',     en: 'Hong Kong' },
+    SG: { ko: '싱가포르', en: 'Singapore' },
+    VN: { ko: '베트남',   en: 'Vietnam' },
+    TH: { ko: '태국',     en: 'Thailand' },
+    PH: { ko: '필리핀',   en: 'Philippines' },
+    ID: { ko: '인도네시아', en: 'Indonesia' },
+    MY: { ko: '말레이시아', en: 'Malaysia' },
+    IN: { ko: '인도',     en: 'India' },
+    CA: { ko: '캐나다',   en: 'Canada' },
+    AU: { ko: '호주',     en: 'Australia' },
+    NZ: { ko: '뉴질랜드', en: 'New Zealand' },
+    GB: { ko: '영국',     en: 'United Kingdom' },
+    DE: { ko: '독일',     en: 'Germany' },
+    FR: { ko: '프랑스',   en: 'France' },
+    IT: { ko: '이탈리아', en: 'Italy' },
+    ES: { ko: '스페인',   en: 'Spain' },
+    NL: { ko: '네덜란드', en: 'Netherlands' },
+    BE: { ko: '벨기에',   en: 'Belgium' },
+    CH: { ko: '스위스',   en: 'Switzerland' },
+    AT: { ko: '오스트리아', en: 'Austria' },
+    SE: { ko: '스웨덴',   en: 'Sweden' },
+    NO: { ko: '노르웨이', en: 'Norway' },
+    DK: { ko: '덴마크',   en: 'Denmark' },
+    FI: { ko: '핀란드',   en: 'Finland' },
+    PL: { ko: '폴란드',   en: 'Poland' },
+    RU: { ko: '러시아',   en: 'Russia' },
+    UA: { ko: '우크라이나', en: 'Ukraine' },
+    BR: { ko: '브라질',   en: 'Brazil' },
+    MX: { ko: '멕시코',   en: 'Mexico' },
+    AR: { ko: '아르헨티나', en: 'Argentina' },
+    TR: { ko: '터키',     en: 'Turkey' },
+    SA: { ko: '사우디아라비아', en: 'Saudi Arabia' },
+    AE: { ko: '아랍에미리트', en: 'UAE' },
+    ZA: { ko: '남아프리카', en: 'South Africa' },
+};
+
+function getFlag(code) {
+    if (!code || code.length !== 2 || code === 'XX') return '🏳️';
+    return [...code.toUpperCase()].map(c =>
+        String.fromCodePoint(0x1F1E6 - 65 + c.charCodeAt(0))
+    ).join('');
+}
+
+function getCountryName(code) {
+    return COUNTRY_NAMES[code]?.[currentLang] || code;
+}
+
+function renderCountryList() {
+    if (!countryListEl) return;
+    if (!countryData || Object.keys(countryData).length === 0) {
+        countryListEl.innerHTML = `<p class="country-empty">${t().countryEmpty}</p>`;
+        return;
+    }
+    const entries = Object.entries(countryData)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+    const max = entries[0]?.[1] || 1;
+    countryListEl.innerHTML = entries.map(([code, count], i) => {
+        const pct = Math.round((count / max) * 100);
+        return `
+            <div class="country-row">
+                <span class="c-rank">${i + 1}</span>
+                <span class="c-flag">${getFlag(code)}</span>
+                <div class="c-info">
+                    <div class="c-name">${escapeHtml(getCountryName(code))}</div>
+                    <div class="c-bar-wrap"><div class="c-bar" style="width:${pct}%"></div></div>
+                </div>
+                <span class="c-count">${count.toLocaleString('ko-KR')}</span>
+            </div>`;
+    }).join('');
+}
+
+function setupCountryListener(date) {
+    if (countryUnsubscriber) countryUnsubscriber();
+    countryData = null;
+    countryUnsubscriber = onValue(ref(db, `countries/${date}`), snap => {
+        countryData = snap.val();
+        renderCountryList();
+    });
+}
+
 // ── 언어 전환 ──
 function applyLanguage() {
     const l = t();
@@ -169,6 +274,7 @@ function applyLanguage() {
     });
     nicknameInput.placeholder = l.placeholder;
     rerenderMilestoneCards();
+    renderCountryList();
     tickCountdown();
 }
 
@@ -305,6 +411,7 @@ onValue(sessionRef, snapshot => {
     if (date !== currentDate) {
         currentDate = date;
         setupMilestoneListeners(date);
+        setupCountryListener(date);
     }
 
     nextResetAt = resetAt;

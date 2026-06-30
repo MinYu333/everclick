@@ -347,6 +347,95 @@ main {
     font-weight: 700;
 }
 
+/* ── Country Rankings ── */
+.country-section {
+    border-top: 1px solid var(--border);
+    padding: 56px 24px;
+}
+
+.country-inner {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.country-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.country-empty {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: 24px 0;
+}
+
+.country-row {
+    display: grid;
+    grid-template-columns: 24px 2rem 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    transition: border-color 0.2s;
+}
+
+.country-row:first-child {
+    border-color: var(--primary);
+}
+
+.c-rank {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-align: right;
+}
+
+.c-flag {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.c-info {
+    min-width: 0;
+}
+
+.c-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 5px;
+}
+
+.c-bar-wrap {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.c-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+}
+
+.c-count {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
 /* ── Info sections (사용 방법 / FAQ) ── */
 .info-section {
     padding: 56px 24px;
