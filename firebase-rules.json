@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "session": {
+      ".read": true,
+      ".write": true
+    },
+    "milestones": {
+      "$date": {
+        "$milestone": {
+          ".read": true,
+          ".write": "!data.exists() || data.child('name').val() === '익명'"
+        }
+      }
+    }
+  }
+}

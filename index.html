@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="전 세계 모든 사람과 함께 클릭 수를 쌓아가는 사이트. 특별한 번째 클릭의 주인공이 되어보세요!">
+    <title>EveryClick - 모두의 클릭</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-inner">
+            <div class="site-name">EveryClick</div>
+            <button class="lang-btn" id="lang-btn">EN</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="hero">
+            <div class="counter-display">
+                <div class="counter-label" id="counter-label">오늘의 누적 클릭 수</div>
+                <div class="counter-num" id="total-count">0</div>
+                <div class="countdown" id="countdown">--:--:-- 후 초기화</div>
+            </div>
+            <div class="button-wrap">
+                <button id="click-btn" class="click-btn" aria-label="클릭 버튼">
+                    <span class="btn-label">CLICK</span>
+                </button>
+            </div>
+            <p class="tagline" id="tagline">버튼을 눌러 함께 클릭의 역사를 만들어가세요</p>
+        </div>
+    </main>
+
+    <section class="hall-of-fame">
+        <h2 class="section-title" id="section-title">명예의 전당</h2>
+        <p class="section-desc" id="section-desc">특별한 순간의 주인공들</p>
+        <div class="milestones-grid" id="milestones-grid"></div>
+    </section>
+
+    <footer>
+        <p id="footer-text">EveryClick &copy; 2026 · 함께 만드는 클릭의 역사</p>
+    </footer>
+
+    <!-- 마일스톤 팝업 -->
+    <div class="popup-overlay" id="popup-overlay" hidden>
+        <div class="popup-box">
+            <div class="popup-emoji">🎉</div>
+            <h2 class="popup-title" id="popup-title">축하합니다!</h2>
+            <p class="popup-msg">
+                <span id="popup-msg-before">당신이 </span><span class="popup-milestone-num" id="popup-milestone-num"></span><span id="popup-msg-after">번째 클릭의 주인공!</span>
+            </p>
+            <p class="popup-sub" id="popup-sub">닉네임을 남겨 명예의 전당에 올라가세요</p>
+            <input class="popup-input" id="nickname-input" type="text" placeholder="닉네임 (최대 15자)" maxlength="15" autocomplete="off">
+            <div class="popup-actions">
+                <button class="btn-register" id="btn-register">등록하기</button>
+                <button class="btn-pass" id="btn-pass">건너뛰기</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
