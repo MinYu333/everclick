@@ -262,7 +262,14 @@ main {
 
 .milestone-card.achieved {
     background: var(--card-achieved);
-    border-color: var(--primary);
+}
+
+.milestone-card.hidden-milestone {
+    animation: border-rainbow 2.5s linear infinite;
+}
+
+.milestone-card.hidden-milestone.achieved {
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .m-icon {
@@ -297,6 +304,38 @@ main {
     line-height: 1.4;
 }
 
+/* ── Rainbow ── */
+@keyframes rainbow-text {
+    0%   { color: #ff4444; }
+    14%  { color: #ff8c00; }
+    28%  { color: #ffcc00; }
+    42%  { color: #44cc44; }
+    57%  { color: #4488ff; }
+    71%  { color: #8844ff; }
+    85%  { color: #ff44cc; }
+    100% { color: #ff4444; }
+}
+
+@keyframes border-rainbow {
+    0%   { border-color: #ff4444; }
+    14%  { border-color: #ff8c00; }
+    28%  { border-color: #ffcc00; }
+    42%  { border-color: #44cc44; }
+    57%  { border-color: #4488ff; }
+    71%  { border-color: #8844ff; }
+    85%  { border-color: #ff44cc; }
+    100% { border-color: #ff4444; }
+}
+
+.rainbow-text {
+    animation: rainbow-text 2s linear infinite;
+}
+
+.rainbow-name {
+    animation: rainbow-text 2s linear infinite;
+    font-weight: 700;
+}
+
 /* ── Info sections (사용 방법 / FAQ) ── */
 .info-section {
     padding: 56px 24px;
@@ -315,9 +354,13 @@ main {
 /* Steps */
 .steps-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+    .steps-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .step-card {
@@ -332,6 +375,10 @@ main {
 .step-card:hover {
     border-color: var(--primary);
     transform: translateY(-3px);
+}
+
+.step-card-hidden {
+    animation: border-rainbow 2.5s linear infinite;
 }
 
 .step-icon {
