@@ -1,7 +1,10 @@
 import { db } from './firebase-config.js';
 import {
-    ref, runTransaction, onValue, set, get
+    ref, onValue, set
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+// ── Worker URL: 배포 후 실제 URL로 교체 ──
+const WORKER_URL = 'https://everclick-worker.ck08273.workers.dev';
 
 const MILESTONES    = [10, 50, 100, 500, 1_000, 10_000, 100_000, 1_000_000];
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -133,8 +136,7 @@ const langBtnEl       = document.getElementById('lang-btn');
 
 const sessionRef = ref(db, 'session');
 
-let currentMilestone       = null;  // number | 'hidden' | null
-let currentHiddenMilestone = null;  // 실제 히든 숫자
+let currentMilestone       = null;
 let isProcessing           = false;
 let nextResetAt            = null;
 let countdownInterval      = null;
@@ -143,21 +145,8 @@ let milestoneUnsubscribers = [];
 const milestoneData        = {};
 
 // ── KST 헬퍼 ──
-function getNextKSTMidnight() {
-    const kstNow           = Date.now() + KST_OFFSET_MS;
-    const kstMidnightToday = Math.floor(kstNow / 86_400_000) * 86_400_000;
-    return kstMidnightToday + 86_400_000 - KST_OFFSET_MS;
-}
-
 function getKSTDateString() {
     return new Date(Date.now() + KST_OFFSET_MS).toISOString().slice(0, 10);
-}
-
-function randomHidden() {
-    let n;
-    do { n = Math.floor(Math.random() * 1000) + 1; }
-    while (MILESTONES.includes(n));
-    return n;
 }
 
 // ── 언어 전환 ──
@@ -282,13 +271,12 @@ function setupMilestoneListeners(date) {
     milestoneUnsubscribers.push(unsubHidden);
 }
 
-// ── 세션 실시간 반영 ──
+// ── 세션 실시간 반영 (읽기 전용) ──
 onValue(sessionRef, snapshot => {
     const session = snapshot.val();
-    const count   = session?.count          ?? 0;
-    const resetAt = session?.resetAt        ?? getNextKSTMidnight();
-    const date    = session?.date           ?? getKSTDateString();
-    currentHiddenMilestone = session?.hiddenMilestone ?? null;
+    const count   = session?.count   ?? 0;
+    const resetAt = session?.resetAt ?? null;
+    const date    = session?.date    ?? getKSTDateString();
 
     const formatted = count.toLocaleString('ko-KR');
     if (totalCountEl.textContent !== formatted) {
@@ -322,7 +310,7 @@ function tickCountdown() {
     countdownEl.textContent = `${pad(h)}:${pad(m)}:${pad(s)} ${t().countdownSuffix}`;
 }
 
-// ── 버튼 클릭 ──
+// ── 버튼 클릭 → Worker 호출 ──
 clickBtn.addEventListener('click', async e => {
     if (isProcessing) return;
     isProcessing = true;
@@ -332,41 +320,15 @@ clickBtn.addEventListener('click', async e => {
     spawnRipple(e);
 
     try {
-        const result = await runTransaction(sessionRef, session => {
-            const now     = Date.now();
-            const resetAt = session?.resetAt;
+        const res = await fetch(`${WORKER_URL}/click`, { method: 'POST' });
+        if (!res.ok) throw new Error(`Worker ${res.status}`);
 
-            if (!resetAt || now >= resetAt) {
-                return {
-                    count:           1,
-                    resetAt:         getNextKSTMidnight(),
-                    date:            getKSTDateString(),
-                    hiddenMilestone: randomHidden()
-                };
-            }
-            return {
-                resetAt:         session.resetAt,
-                date:            session.date,
-                count:           (session.count ?? 0) + 1,
-                hiddenMilestone: session.hiddenMilestone
-            };
-        });
+        const data = await res.json();
+        const { milestone, isHidden, hiddenActualNum } = data;
 
-        const snap     = result.snapshot.val();
-        const newCount = snap?.count;
-        const date     = snap?.date ?? getKSTDateString();
-        const hidden   = snap?.hiddenMilestone;
-
-        if (MILESTONES.includes(newCount)) {
-            currentMilestone = newCount;
-            const mRef = ref(db, `milestones/${date}/${newCount}`);
-            set(mRef, { name: '익명', date: new Date().toLocaleDateString('ko-KR') });
-            openPopup(newCount, false);
-        } else if (hidden && newCount === hidden) {
-            currentMilestone = 'hidden';
-            const mRef = ref(db, `milestones/${date}/hidden`);
-            set(mRef, { name: '익명', date: new Date().toLocaleDateString('ko-KR') });
-            openPopup(hidden, true);
+        if (milestone !== null && milestone !== undefined) {
+            currentMilestone = milestone;
+            openPopup(isHidden ? hiddenActualNum : milestone, isHidden);
         }
     } catch (err) {
         console.error('클릭 처리 실패:', err);
