@@ -157,6 +157,7 @@ const milestonesGrid  = document.getElementById('milestones-grid');
 const hiddenTop       = document.getElementById('hidden-top');
 const langBtnEl       = document.getElementById('lang-btn');
 const countryListEl   = document.getElementById('country-list');
+const btnLegendEl     = document.getElementById('btn-legend');
 
 const sessionRef = ref(db, 'session');
 
@@ -261,6 +262,17 @@ function updateButtonChart() {
         'radial-gradient(circle at 38% 35%, rgba(255,255,255,0.18) 0%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0.45) 100%)',
         `conic-gradient(${stops.join(', ')})`,
     ].join(', ');
+
+    // 범례 업데이트
+    if (btnLegendEl) {
+        btnLegendEl.innerHTML = entries.map(([code], i) => {
+            const color = COUNTRY_COLORS[i % COUNTRY_COLORS.length];
+            return `<div class="legend-item">
+                <span class="legend-dot" style="background:${color}"></span>
+                <span>${getFlag(code)} ${escapeHtml(getCountryName(code))}</span>
+            </div>`;
+        }).join('');
+    }
 }
 
 function renderCountryList() {
@@ -293,6 +305,7 @@ function setupCountryListener(date) {
     if (countryUnsubscriber) countryUnsubscriber();
     countryData = null;
     clickBtn.style.background = '';
+    if (btnLegendEl) btnLegendEl.innerHTML = '';
     countryUnsubscriber = onValue(ref(db, `countries/${date}`), snap => {
         countryData = snap.val();
         renderCountryList();
@@ -309,6 +322,7 @@ function applyLanguage() {
     nicknameInput.placeholder = l.placeholder;
     rerenderMilestoneCards();
     renderCountryList();
+    updateButtonChart();
     tickCountdown();
 }
 
