@@ -3,8 +3,8 @@ import {
     ref, onValue, set, get
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-// ── Worker URL: 배포 후 실제 URL로 교체 ──
-const WORKER_URL = 'https://everclick-worker.ck08273.workers.dev';
+const WORKER_URL   = 'https://everclick-worker.ck08273.workers.dev';
+const CLICK_TOKEN  = '_8EXouDjl8SYdjV9AHOP13p7tw8zQ8u2';
 
 const MILESTONES    = [10, 50, 100, 500, 1_000, 10_000, 100_000, 1_000_000];
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -343,8 +343,11 @@ async function flushClick(count = 1) {
     try {
         const res = await fetch(`${WORKER_URL}/click`, {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ count }),
+            headers: {
+                'Content-Type':  'application/json',
+                'X-Click-Token': CLICK_TOKEN,
+            },
+            body: JSON.stringify({ count }),
         });
         if (!res.ok) throw new Error(`Worker ${res.status}`);
 

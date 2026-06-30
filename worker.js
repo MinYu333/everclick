@@ -72,11 +72,17 @@ export default {
             return new Response('Not Found', { status: 404, headers: corsHeaders });
         }
 
-        // 배치 클릭 수 (최대 100)
+        // 요청 토큰 검증 (직접 호출 차단)
+        const { REQUEST_TOKEN } = env;
+        if (REQUEST_TOKEN && request.headers.get('X-Click-Token') !== REQUEST_TOKEN) {
+            return new Response('Forbidden', { status: 403, headers: corsHeaders });
+        }
+
+        // 배치 클릭 수 (최대 10)
         let clickCount = 1;
         try {
             const body = await request.json();
-            clickCount = Math.max(1, Math.min(parseInt(body.count) || 1, 100));
+            clickCount = Math.max(1, Math.min(parseInt(body.count) || 1, 10));
         } catch {}
 
         const sessionUrl = `${FIREBASE_DB_URL}/session.json?auth=${FIREBASE_SECRET}`;
