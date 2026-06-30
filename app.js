@@ -138,6 +138,7 @@ const sessionRef = ref(db, 'session');
 
 let currentMilestone       = null;
 let isProcessing           = false;
+let pendingClicks          = 0;
 let nextResetAt            = null;
 let countdownInterval      = null;
 let currentDate            = null;
@@ -311,18 +312,24 @@ function tickCountdown() {
 }
 
 // ── 버튼 클릭 → Worker 호출 ──
-clickBtn.addEventListener('click', async e => {
-    if (isProcessing) return;
-    isProcessing = true;
-
+clickBtn.addEventListener('click', e => {
     clickBtn.classList.add('pressing');
     setTimeout(() => clickBtn.classList.remove('pressing'), 160);
     spawnRipple(e);
 
-    // 클릭 즉시 숫자 +1 (체감 속도 개선)
+    // 클릭 즉시 숫자 +1
     const current = parseInt(totalCountEl.textContent.replace(/,/g, '')) || 0;
     totalCountEl.textContent = (current + 1).toLocaleString('ko-KR');
 
+    if (isProcessing) {
+        pendingClicks++;
+        return;
+    }
+    flushClick();
+});
+
+async function flushClick() {
+    isProcessing = true;
     try {
         const res = await fetch(`${WORKER_URL}/click`, { method: 'POST' });
         if (!res.ok) throw new Error(`Worker ${res.status}`);
@@ -336,12 +343,14 @@ clickBtn.addEventListener('click', async e => {
         }
     } catch (err) {
         console.error('클릭 처리 실패:', err);
-        // 실패 시 원래 숫자로 복원
-        totalCountEl.textContent = current.toLocaleString('ko-KR');
     } finally {
         isProcessing = false;
+        if (pendingClicks > 0) {
+            pendingClicks--;
+            flushClick();
+        }
     }
-});
+}
 
 function spawnRipple(e) {
     const rect   = clickBtn.getBoundingClientRect();
