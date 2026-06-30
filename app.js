@@ -1,6 +1,6 @@
 import { db } from './firebase-config.js';
 import {
-    ref, onValue, set
+    ref, onValue, set, get
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 // ── Worker URL: 배포 후 실제 URL로 교체 ──
@@ -70,6 +70,7 @@ const LANG = {
         contactLink:         '문의하기',
         hiddenLabel:         '???번째',
         hiddenPending:       '히든 마일스톤을 노려보세요!',
+        hiddenAchieved:      n => `${n.toLocaleString('ko-KR')}번째 히든 마일스톤`,
     },
     en: {
         counterLabel:        "Today's Total Clicks",
@@ -114,6 +115,7 @@ const LANG = {
         contactLink:         'Contact',
         hiddenLabel:         '??? th',
         hiddenPending:       'Can you find the hidden milestone?',
+        hiddenAchieved:      n => `No. ${n.toLocaleString('en-US')} Hidden Milestone`,
     }
 };
 
@@ -225,10 +227,11 @@ function renderAchievedCard(milestone, data) {
     if (!card) return;
 
     if (milestone === 'hidden') {
+        const label = data.hiddenNum ? t().hiddenAchieved(data.hiddenNum) : t().hiddenLabel;
         card.className = 'milestone-card hidden-milestone achieved';
         card.innerHTML = `
             <span class="m-icon">🌈</span>
-            <div class="m-number rainbow-text">${t().hiddenLabel}</div>
+            <div class="m-number rainbow-text">${label}</div>
             <div class="m-name rainbow-name">${escapeHtml(data.name)}</div>
             <div class="m-date">${data.date}</div>
         `;
@@ -404,10 +407,16 @@ btnRegister.addEventListener('click', async () => {
     }
     if (!currentMilestone) return;
 
-    const date    = currentDate ?? getKSTDateString();
-    const key     = currentMilestone === 'hidden' ? 'hidden' : currentMilestone;
-    const mRef    = ref(db, `milestones/${date}/${key}`);
-    await set(mRef, { name, date: new Date().toLocaleDateString('ko-KR') });
+    const date  = currentDate ?? getKSTDateString();
+    const key   = currentMilestone === 'hidden' ? 'hidden' : currentMilestone;
+    const mRef  = ref(db, `milestones/${date}/${key}`);
+    const entry = { name, date: new Date().toLocaleDateString('ko-KR') };
+    if (currentMilestone === 'hidden') {
+        const snap = await get(mRef);
+        const hiddenNum = snap.val()?.hiddenNum;
+        if (hiddenNum) entry.hiddenNum = hiddenNum;
+    }
+    await set(mRef, entry);
     closePopup();
 });
 

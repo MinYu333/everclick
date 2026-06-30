@@ -21,7 +21,6 @@ function getDailyHidden(date, salt) {
     return n;
 }
 
-// oldCount+1 ~ newCount 범위에서 첫 번째 마일스톤 탐색
 function findMilestone(oldCount, newCount, hidden) {
     for (let i = oldCount + 1; i <= newCount; i++) {
         if (MILESTONES.includes(i)) return { milestone: i, isHidden: false };
@@ -45,7 +44,7 @@ export default {
 
         const corsHeaders = {
             'Access-Control-Allow-Origin':  corsOrigin,
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type',
         };
 
@@ -53,7 +52,22 @@ export default {
             return new Response(null, { headers: corsHeaders });
         }
 
-        const url = new URL(request.url);
+        const url  = new URL(request.url);
+        const { FIREBASE_DB_URL, FIREBASE_SECRET, HIDDEN_SALT, ADMIN_KEY } = env;
+        const salt = parseInt(HIDDEN_SALT) || 0x1a2b3c4d;
+
+        // ── 관리자 전용: 오늘의 히든 숫자 확인 ──
+        if (request.method === 'GET' && url.pathname === '/admin') {
+            if (!ADMIN_KEY || url.searchParams.get('key') !== ADMIN_KEY) {
+                return new Response('Unauthorized', { status: 401 });
+            }
+            const date   = getKSTDateString();
+            const hidden = getDailyHidden(date, salt);
+            return new Response(JSON.stringify({ date, hidden }), {
+                headers: { 'Content-Type': 'application/json' },
+            });
+        }
+
         if (request.method !== 'POST' || url.pathname !== '/click') {
             return new Response('Not Found', { status: 404, headers: corsHeaders });
         }
@@ -65,8 +79,6 @@ export default {
             clickCount = Math.max(1, Math.min(parseInt(body.count) || 1, 100));
         } catch {}
 
-        const { FIREBASE_DB_URL, FIREBASE_SECRET, HIDDEN_SALT } = env;
-        const salt = parseInt(HIDDEN_SALT) || 0x1a2b3c4d;
         const sessionUrl = `${FIREBASE_DB_URL}/session.json?auth=${FIREBASE_SECRET}`;
 
         let retries = 10;
@@ -109,13 +121,15 @@ export default {
                 const mUrl = `${FIREBASE_DB_URL}/milestones/${date}/${key}.json?auth=${FIREBASE_SECRET}`;
                 const existsRes = await fetch(mUrl);
                 if ((await existsRes.json()) === null) {
+                    const entry = {
+                        name: '익명',
+                        date: new Date(now).toLocaleDateString('ko-KR'),
+                    };
+                    if (isHidden) entry.hiddenNum = hidden;
                     await fetch(mUrl, {
                         method:  'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body:    JSON.stringify({
-                            name: '익명',
-                            date: new Date(now).toLocaleDateString('ko-KR'),
-                        }),
+                        body:    JSON.stringify(entry),
                     });
                 }
             }

@@ -16,6 +16,9 @@
           "date": {
             ".validate": "newData.isString()"
           },
+          "hiddenNum": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000"
+          },
           "$other": {
             ".validate": false
           }
