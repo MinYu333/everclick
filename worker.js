@@ -45,7 +45,7 @@ export default {
         const corsHeaders = {
             'Access-Control-Allow-Origin':  corsOrigin,
             'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Click-Token',
         };
 
         if (request.method === 'OPTIONS') {
