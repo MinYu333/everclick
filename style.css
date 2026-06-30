@@ -297,13 +297,127 @@ main {
     line-height: 1.4;
 }
 
+/* ── Info sections (사용 방법 / FAQ) ── */
+.info-section {
+    padding: 56px 24px;
+    border-top: 1px solid var(--border);
+}
+
+.faq-section {
+    background: rgba(255, 255, 255, 0.015);
+}
+
+.info-inner {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+/* Steps */
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 8px;
+}
+
+.step-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.step-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-3px);
+}
+
+.step-icon {
+    font-size: 2.5rem;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.step-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.step-desc {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+/* FAQ */
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.faq-item {
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.faq-item:last-child {
+    border-bottom: none;
+}
+
+.faq-q {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.faq-a {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+
 /* ── Footer ── */
 footer {
     border-top: 1px solid var(--border);
-    padding: 24px;
+    padding: 32px 24px;
     text-align: center;
     color: var(--text-muted);
     font-size: 0.85rem;
+}
+
+.footer-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.footer-nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+.footer-nav a:hover {
+    color: var(--primary);
+}
+
+.footer-dot {
+    color: var(--border);
+}
+
+@media (max-width: 640px) {
+    .steps-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ── Popup ── */

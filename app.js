@@ -27,6 +27,25 @@ const LANG = {
         countdownInit:   '--:--:-- 후 초기화',
         resetting:       '초기화 중...',
         langBtn:         'EN',
+        howToTitle:      '사용 방법',
+        howToDesc:       '간단하게 참여해보세요',
+        step1Title:      '버튼 클릭',
+        step1Desc:       '화면 중앙의 버튼을 눌러 전체 클릭 수에 1을 더하세요.',
+        step2Title:      '실시간 공유',
+        step2Desc:       '전 세계 모든 방문자의 클릭이 실시간으로 합산됩니다.',
+        step3Title:      '주인공 등극',
+        step3Desc:       '특별한 번째 클릭을 달성하면 명예의 전당에 이름이 올라가요.',
+        faqTitle:        '자주 묻는 질문',
+        faq1q:           '클릭 수는 언제 초기화되나요?',
+        faq1a:           '한국 시간(KST) 기준 매일 자정 00:00에 초기화됩니다. 화면에 남은 시간이 카운트다운으로 표시됩니다.',
+        faq2q:           '명예의 전당이 뭔가요?',
+        faq2a:           '10, 50, 100, 500번째 등 특별한 번째 클릭을 달성한 분의 닉네임이 기록되는 공간입니다. 매일 초기화됩니다.',
+        faq3q:           '여러 번 클릭해도 되나요?',
+        faq3a:           '제한 없이 클릭할 수 있어요. 함께 숫자를 쌓아가는 것이 목표입니다.',
+        faq4q:           '닉네임을 입력하지 않으면 어떻게 되나요?',
+        faq4a:           '건너뛰거나 창을 닫으면 자동으로 "익명"으로 기록됩니다.',
+        privacyLink:     '개인정보처리방침',
+        contactLink:     '문의하기',
     },
     en: {
         counterLabel:    "Today's Total Clicks",
@@ -47,6 +66,25 @@ const LANG = {
         countdownInit:   '--:--:-- until reset',
         resetting:       'Resetting...',
         langBtn:         '한국어',
+        howToTitle:      'How to Use',
+        howToDesc:       'Join in just a few steps',
+        step1Title:      'Click the Button',
+        step1Desc:       'Press the button in the center to add 1 to the total click count.',
+        step2Title:      'Shared in Real Time',
+        step2Desc:       'Clicks from all visitors around the world are tallied instantly.',
+        step3Title:      'Become the Star',
+        step3Desc:       'Hit a special milestone and your name goes up in the Hall of Fame.',
+        faqTitle:        'FAQ',
+        faq1q:           'When does the count reset?',
+        faq1a:           'The count resets every day at midnight Korean Standard Time (KST). A countdown timer on screen shows the time remaining.',
+        faq2q:           'What is the Hall of Fame?',
+        faq2a:           'It records the nickname of whoever achieves a special milestone click — 10th, 50th, 100th, 500th, and more. It resets daily.',
+        faq3q:           'Can I click more than once?',
+        faq3a:           'Absolutely! There are no limits. The goal is to build the number together.',
+        faq4q:           'What if I skip entering a nickname?',
+        faq4a:           'If you skip or close the popup, you will be recorded as "익명" (Anonymous) automatically.',
+        privacyLink:     'Privacy Policy',
+        contactLink:     'Contact',
     }
 };
 
@@ -91,19 +129,11 @@ function getKSTDateString() {
 // ── 언어 전환 ──
 function applyLanguage() {
     const l = t();
-    document.getElementById('counter-label').textContent = l.counterLabel;
-    document.getElementById('tagline').textContent       = l.tagline;
-    document.getElementById('section-title').textContent = l.sectionTitle;
-    document.getElementById('section-desc').textContent  = l.sectionDesc;
-    document.getElementById('footer-text').textContent   = l.footerText;
-    document.getElementById('popup-title').textContent   = l.popupTitle;
-    document.getElementById('popup-sub').textContent     = l.popupSub;
-    popupMsgBefore.textContent  = l.popupMsgBefore;
-    popupMsgAfter.textContent   = l.popupMsgAfter;
-    nicknameInput.placeholder   = l.placeholder;
-    btnRegister.textContent     = l.btnRegister;
-    btnPass.textContent         = l.btnPass;
-    langBtnEl.textContent       = l.langBtn;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (l[key] !== undefined) el.textContent = l[key];
+    });
+    nicknameInput.placeholder = l.placeholder;
     rerenderMilestoneCards();
     tickCountdown();
 }
