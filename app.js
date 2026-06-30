@@ -291,9 +291,11 @@ onValue(sessionRef, snapshot => {
     const date    = session?.date    ?? getKSTDateString();
 
     latestServerCount = count;
-    const formatted = count.toLocaleString('ko-KR');
-    // 처리 중인 클릭이 있으면 Firebase 값으로 덮어쓰지 않음
-    if (!isProcessing && pendingClicks === 0 && totalCountEl.textContent !== formatted) {
+    // 서버 카운트 + 아직 전송 안 된 클릭을 합산해 항상 반영 (다른 사람 클릭도 즉시 보임)
+    const current   = parseInt(totalCountEl.textContent.replace(/,/g, '')) || 0;
+    const displayed = Math.max(count + pendingClicks, current);
+    const formatted = displayed.toLocaleString('ko-KR');
+    if (totalCountEl.textContent !== formatted) {
         totalCountEl.textContent = formatted;
         totalCountEl.classList.remove('bump');
         void totalCountEl.offsetWidth;
@@ -358,6 +360,7 @@ async function flushClick(count = 1) {
         if (!res.ok) throw new Error(`Worker ${res.status}`);
 
         const data = await res.json();
+        latestServerCount = data.count; // Worker 응답에서 즉시 동기화
         const { milestone, isHidden, hiddenActualNum } = data;
 
         if (milestone !== null && milestone !== undefined) {
