@@ -241,6 +241,16 @@ main {
     font-size: 0.95rem;
 }
 
+.hidden-top {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.hidden-top .milestone-card {
+    width: 220px;
+}
+
 .milestones-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));

@@ -134,6 +134,7 @@ const nicknameInput   = document.getElementById('nickname-input');
 const btnRegister     = document.getElementById('btn-register');
 const btnPass         = document.getElementById('btn-pass');
 const milestonesGrid  = document.getElementById('milestones-grid');
+const hiddenTop       = document.getElementById('hidden-top');
 const langBtnEl       = document.getElementById('lang-btn');
 
 const sessionRef = ref(db, 'session');
@@ -152,6 +153,11 @@ const milestoneData        = {};
 // ── KST 헬퍼 ──
 function getKSTDateString() {
     return new Date(Date.now() + KST_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+function getNextKSTMidnight() {
+    const kstNow = Date.now() + KST_OFFSET_MS;
+    return Math.floor(kstNow / 86_400_000) * 86_400_000 + 86_400_000 - KST_OFFSET_MS;
 }
 
 // ── 언어 전환 ──
@@ -183,7 +189,7 @@ function initMilestoneCards() {
     const hiddenCard = document.createElement('div');
     hiddenCard.id        = 'card-hidden';
     hiddenCard.className = 'milestone-card hidden-milestone';
-    milestonesGrid.appendChild(hiddenCard);
+    hiddenTop.appendChild(hiddenCard);
 
     rerenderMilestoneCards();
 }
@@ -281,7 +287,7 @@ function setupMilestoneListeners(date) {
 onValue(sessionRef, snapshot => {
     const session = snapshot.val();
     const count   = session?.count   ?? 0;
-    const resetAt = session?.resetAt ?? null;
+    const resetAt = session?.resetAt ?? getNextKSTMidnight();
     const date    = session?.date    ?? getKSTDateString();
 
     latestServerCount = count;
