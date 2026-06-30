@@ -6,7 +6,7 @@ import {
 const WORKER_URL   = 'https://everclick-worker.ck08273.workers.dev';
 const CLICK_TOKEN  = '_8EXouDjl8SYdjV9AHOP13p7tw8zQ8u2';
 
-const MILESTONES    = [10, 50, 100, 500, 1_000, 2_000, 3_000, 4_000, 5_000, 6_000, 7_000, 8_000, 9_000, 10_000, 100_000, 1_000_000];
+const MILESTONES    = [10, 50, 100, 500, 1_000, 2_000, 3_000, 4_000, 5_000, 6_000, 7_000, 8_000, 9_000, 10_000, 50_000, 100_000];
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
 // 국가 파이차트 색상
@@ -31,12 +31,21 @@ const MILESTONE_COLORS = {
     8000:      '#eab308',
     9000:      '#ef4444',
     10000:     '#f43f5e',
+    50000:     '#a855f7',
     100000:    '#e879f9',
-    1000000:   '#c084fc',
 };
 
 function getMilestoneColor(m) {
     return MILESTONE_COLORS[m] || 'var(--primary)';
+}
+
+function getMilestoneTier(m) {
+    if (m >= 100_000) return 6;
+    if (m >= 50_000)  return 5;
+    if (m >= 10_000)  return 4;
+    if (m >= 4_000)   return 3;
+    if (m >= 500)     return 2;
+    return 1;
 }
 
 // ── 번역 ──
@@ -400,12 +409,22 @@ function renderAchievedCard(milestone, data) {
     }
 
     const color = getMilestoneColor(milestone);
-    card.className         = 'milestone-card achieved';
-    card.style.borderColor = color;
+    const tier  = getMilestoneTier(milestone);
+
+    card.className = `milestone-card achieved tier-${tier}`;
+    card.style.setProperty('--mc', color);
+    card.style.borderColor = tier >= 5 ? '' : color;
+
+    const rainbow  = tier >= 5;
+    const icon     = tier >= 6 ? '👑' : tier >= 5 ? '💎' : '🏆';
+    const numClass = rainbow ? 'm-number rainbow-text' : 'm-number';
+    const namClass = rainbow ? 'm-name rainbow-name'   : 'm-name';
+    const colStyle = rainbow ? '' : `style="color:${color}"`;
+
     card.innerHTML = `
-        <span class="m-icon">🏆</span>
-        <div class="m-number" style="color:${color}">${t().mNumber(milestone)}</div>
-        <div class="m-name" style="color:${color}">${escapeHtml(data.name)}</div>
+        <span class="m-icon${tier >= 4 ? ' m-icon-spin' : ''}">${icon}</span>
+        <div class="${numClass}" ${colStyle}>${t().mNumber(milestone)}</div>
+        <div class="${namClass}" ${colStyle}>${escapeHtml(data.name)}</div>
         <div class="m-date">${data.date}</div>
     `;
 }

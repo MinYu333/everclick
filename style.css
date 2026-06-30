@@ -301,6 +301,74 @@ main {
     background: var(--card-achieved);
 }
 
+/* ── 마일스톤 티어 효과 ── */
+
+/* Tier 2: 정적 글로우 */
+.milestone-card.tier-2.achieved {
+    box-shadow: 0 0 12px var(--mc);
+}
+
+/* Tier 3: 박동 글로우 */
+.milestone-card.tier-3.achieved {
+    animation: tier-pulse 2s ease-in-out infinite;
+}
+@keyframes tier-pulse {
+    0%, 100% { box-shadow: 0 0 10px var(--mc); }
+    50%       { box-shadow: 0 0 28px var(--mc), 0 0 8px var(--mc); }
+}
+
+/* Tier 4: 강한 박동 + 배경 강조 */
+.milestone-card.tier-4.achieved {
+    animation: tier-pulse-strong 1.5s ease-in-out infinite;
+    background: rgba(255, 255, 255, 0.07);
+}
+@keyframes tier-pulse-strong {
+    0%, 100% { box-shadow: 0 0 18px var(--mc), 0 0 4px var(--mc); }
+    50%       { box-shadow: 0 0 40px var(--mc), 0 0 16px var(--mc); }
+}
+
+/* Tier 5: 무지개 테두리 + 글로우 */
+.milestone-card.tier-5.achieved {
+    animation: border-rainbow 2s linear infinite, tier5-glow 2s linear infinite;
+    background: rgba(255, 255, 255, 0.06);
+}
+@keyframes tier5-glow {
+    0%   { box-shadow: 0 0 20px #ff4444, 0 0 40px #ff444422; }
+    14%  { box-shadow: 0 0 20px #ff8c00, 0 0 40px #ff8c0022; }
+    28%  { box-shadow: 0 0 20px #ffcc00, 0 0 40px #ffcc0022; }
+    42%  { box-shadow: 0 0 20px #44cc44, 0 0 40px #44cc4422; }
+    57%  { box-shadow: 0 0 20px #4488ff, 0 0 40px #4488ff22; }
+    71%  { box-shadow: 0 0 20px #8844ff, 0 0 40px #8844ff22; }
+    85%  { box-shadow: 0 0 20px #ff44cc, 0 0 40px #ff44cc22; }
+    100% { box-shadow: 0 0 20px #ff4444, 0 0 40px #ff444422; }
+}
+
+/* Tier 6: 전설 — 빠른 무지개 + 강한 글로우 + 배경 shimmer */
+.milestone-card.tier-6.achieved {
+    animation: border-rainbow 1s linear infinite, tier6-glow 1s linear infinite;
+    background: linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+}
+@keyframes tier6-glow {
+    0%   { box-shadow: 0 0 30px #ff4444, 0 0 70px #ff444444; }
+    14%  { box-shadow: 0 0 30px #ff8c00, 0 0 70px #ff8c0044; }
+    28%  { box-shadow: 0 0 30px #ffcc00, 0 0 70px #ffcc0044; }
+    42%  { box-shadow: 0 0 30px #44cc44, 0 0 70px #44cc4444; }
+    57%  { box-shadow: 0 0 30px #4488ff, 0 0 70px #4488ff44; }
+    71%  { box-shadow: 0 0 30px #8844ff, 0 0 70px #8844ff44; }
+    85%  { box-shadow: 0 0 30px #ff44cc, 0 0 70px #ff44cc44; }
+    100% { box-shadow: 0 0 30px #ff4444, 0 0 70px #ff444444; }
+}
+
+/* 고티어 아이콘 회전 */
+.m-icon-spin {
+    display: inline-block;
+    animation: icon-float 2s ease-in-out infinite;
+}
+@keyframes icon-float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%       { transform: translateY(-4px) scale(1.15); }
+}
+
 .milestone-card.hidden-milestone {
     animation: border-rainbow 2.5s linear infinite;
 }
