@@ -148,7 +148,7 @@ const LANG = {
     }
 };
 
-let currentLang = 'ko';
+let currentLang = navigator.language?.startsWith('ko') ? 'ko' : 'en';
 const t = () => LANG[currentLang];
 
 // ── DOM ──
