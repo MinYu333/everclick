@@ -3,7 +3,7 @@ import {
     ref, runTransaction, onValue, set, get
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-const MILESTONES    = [10, 50, 100, 500, 1_000, 10_000, 100_000, 1_000_000, 10_000_000];
+const MILESTONES    = [10, 50, 100, 500, 1_000, 10_000, 100_000, 1_000_000];
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
 // ── 번역 ──
